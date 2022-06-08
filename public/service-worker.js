@@ -19,11 +19,11 @@ const FILES_TO_CACHE = [
   "./icons/icon-72x72.png",
 ];
 
-// Install the service worker
-self.addEventListener("install", function (evt) {
-  evt.waitUntil(
+// install and the response with cached resources
+self.addEventListener("install", function (event) {
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Your files were pre-cached successfully!");
+      console.log("Your files were pre-cached!");
       return cache.addAll(FILES_TO_CACHE);
     })
   );
@@ -31,25 +31,25 @@ self.addEventListener("install", function (evt) {
   self.skipWaiting();
 });
 
-// Intercept fetch requests
-self.addEventListener("fetch", function (evt) {
-  if (evt.request.url.includes("/api/")) {
-    evt.respondWith(
+// retrieve information from the cache
+self.addEventListener("fetch", function (event) {
+  if (event.request.url.includes("/api/")) {
+    event.respondWith(
       caches
         .open(DATA_CACHE_NAME)
         .then((cache) => {
-          return fetch(evt.request)
+          return fetch(event.request)
             .then((response) => {
-              // If the response was good, clone it and store it in the cache.
+              // clone and store it in the cache if the response was successful.
               if (response.status === 200) {
-                cache.put(evt.request.url, response.clone());
+                cache.put(event.request.url, response.clone());
               }
 
               return response;
             })
             .catch((err) => {
-              // Network request failed, try to get it from the cache.
-              return cache.match(evt.request);
+              // Network request was not successful-- get it from the cache.
+              return cache.match(event.request);
             });
         })
         .catch((err) => console.log(err))
@@ -58,13 +58,13 @@ self.addEventListener("fetch", function (evt) {
     return;
   }
 
-  evt.respondWith(
-    fetch(evt.request).catch(function () {
-      return caches.match(evt.request).then(function (response) {
+  event.respondWith(
+    fetch(event.request).catch(function () {
+      return caches.match(event.request).then(function (response) {
         if (response) {
           return response;
-        } else if (evt.request.headers.get("accept").includes("text/html")) {
-          // return the cached home page for all requests for html pages
+        } else if (event.request.headers.get("accept").includes("text/html")) {
+          // return the cached home page for all requests for index.html pages
           return caches.match("/");
         }
       });
@@ -72,14 +72,14 @@ self.addEventListener("fetch", function (evt) {
   );
 });
 
-// Activate the service worker and remove old data from the cache
-self.addEventListener("activate", function (evt) {
-  evt.waitUntil(
+// Activate the service worker and remove previous data from the cache
+self.addEventListener("activate", function (event) {
+  event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
-            console.log("Removing old cache data", key);
+            console.log("Removing previous cache data", key);
             return caches.delete(key);
           }
         })
@@ -89,63 +89,3 @@ self.addEventListener("activate", function (evt) {
 
   self.clients.claim();
 });
-
-// const FILES_TO_CACHE = [
-//   "./index.html",
-//   "./css/styles.css",
-//   "./js/index.js",
-//   "./js/idb.js",
-// ];
-
-// const APP_PREFIX = "BudgetTracker-";
-// const VERSION = "version_01";
-// const CACHE_NAME = APP_PREFIX + VERSION;
-
-// self.addEventListener("install", function (event) {
-//   event.waitUntil(
-//     caches.open(CACHE_NAME).then(function (cache) {
-//       console.log("Files cached successfully!");
-//       return cache.addAll(FILES_TO_CACHE);
-//     })
-//   );
-// });
-
-// self.addEventListener("activate", function (event) {
-//   event.waitUntil(
-//     caches.keys().then(function (keyList) {
-//       let cacheKeeplist = keyList.filter(function (key) {
-//         return key.indexOf(APP_PREFIX);
-//       });
-//       cacheKeeplist.push(CACHE_NAME);
-
-//       return Promise.all(
-//         keyList.map(function (key, i) {
-//           if (cacheKeeplist.indexOf(key) === -1) {
-//             console.log("deleting cache : " + keyList[i]);
-//             return caches.delete(keyList[i]);
-//           }
-//         })
-//       );
-//     })
-//   );
-// });
-
-// self.addEventListener("fetch", function (event) {
-//   console.log("fetch request : " + event.request.url);
-//   event.respondWith(
-//     caches.match(event.request).then(function (request) {
-//       if (request) {
-//         // if cache is available, respond with cache
-//         console.log("responding with cache : " + event.request.url);
-//         return request;
-//       } else {
-//         // if there are no cache, try fetching request
-//         console.log("file is not cached, fetching : " + event.request.url);
-//         return fetch(event.request);
-//       }
-
-//       // You can omit if/else for console.log & put one line below like this too.
-//       // return request || fetch(e.request)
-//     })
-//   );
-// });
