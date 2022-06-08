@@ -42,7 +42,7 @@ true
 
 ![Screenshot](./Screenshot2.png)
 
-![Screenshot](./Screenshot13.png)
+![Screenshot](./Screenshot3.png)
 
 ### URL of the deployed application (GitHub Pages):
 
