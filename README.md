@@ -44,7 +44,7 @@ true
 
 ![Screenshot](./Screenshot3.png)
 
-### URL of the deployed application (GitHub Pages):
+### URL of the deployed application (Heroku):
 
 <https://gentle-headland-85061.herokuapp.com/>
 
